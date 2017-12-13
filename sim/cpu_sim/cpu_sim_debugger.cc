@@ -61,7 +61,7 @@ void dump_inst(uint32_t virt_addr) {
 }
 
 boost::optional<int> is_breakpoint(uint32_t addr) {
-    for (int i = 0; i < breakpoints.size(); ++i) {
+    for (uint i = 0; i < breakpoints.size(); ++i) {
         if (addr == breakpoints[i])
             return i;
     }
@@ -70,7 +70,7 @@ boost::optional<int> is_breakpoint(uint32_t addr) {
 
 boost::optional<int> hit_write_watchpoint() {
     // TODO: this doesn't take into account size, just starting address.
-    for (int i = 0; i < write_watchpoints.size(); ++i) {
+    for (uint i = 0; i < write_watchpoints.size(); ++i) {
       if (cpu.last_writes[0] && (*cpu.last_writes[0]).addr == write_watchpoints[i])
             return i;
       if (cpu.last_writes[1] && (*cpu.last_writes[1]).addr == write_watchpoints[i])
@@ -88,7 +88,7 @@ boost::optional<int> last_exception() {
         return boost::none;
     }
 
-    for (int i = 0; i < 4; ++i) {
+    for (uint i = 0; i < 4; ++i) {
         if (cpu.regs.cpr[CP_EC0 + i] != EXC_NO_ERROR)
             return cpu.regs.cpr[CP_EC0 + i];
     }
@@ -118,7 +118,8 @@ uint32_t read_num(std::string &num_str) {
 
 volatile bool stop_flag = false;
 
-void control_c_handler(int s) {
+// FIXME: Fully implement this function.
+void control_c_handler(int UNUSED(s)) {
     stop_flag = true;
     printf("\n");
 }
@@ -137,7 +138,7 @@ void process_line(std::string &line) {
         printf("List!\n");
     } else if (tokens[0] == "regs" || tokens[0] == "r") {
         if (tokens.size() == 1) {
-            for (int i = 0; i < 32; ++i) {
+            for (uint i = 0; i < 32; ++i) {
                 printf("%sr%d = 0x%08x ", (i >= 10 ? "" : " "), i, cpu.regs.r[i]);
                 if ((i % 4) == 3)
                     printf("\n");
@@ -146,7 +147,7 @@ void process_line(std::string &line) {
             if (tokens[1] == "pc") {
                 printf("pc = 0x%08x\n", cpu.regs.pc);
             } else if (tokens[1] == "co" || tokens[1] == "c") {
-                for (int i = 0; i < CP_REG_COUNT; ++i) {
+                for (uint i = 0; i < CP_REG_COUNT; ++i) {
                     if (i <= CP_EA1 || i >= CP_SP0) {
                         printf("%6s = 0x%08x", CP_REG_STR[i], cpu.regs.cpr[i]);
                         if (i % 2 == 1)
@@ -219,7 +220,7 @@ void process_line(std::string &line) {
     } else if (tokens[0] == "b" || tokens[0] == "break") {
         if (tokens.size() == 1) {
             printf("Breakpoints:\n");
-            for (int i = 0; i < breakpoints.size(); ++i) {
+            for (uint i = 0; i < breakpoints.size(); ++i) {
                 printf("%4d at 0x%08x\n", i, breakpoints[i]);
             }
         } else {
@@ -230,7 +231,7 @@ void process_line(std::string &line) {
     } else if (tokens[0] == "b/w" || tokens[0] == "break/w") {
         if (tokens.size() == 1) {
             printf("Watchpoints on write:\n");
-            for (int i = 0; i < write_watchpoints.size(); ++i) {
+            for (uint i = 0; i < write_watchpoints.size(); ++i) {
                 printf("%4d at 0x%08x\n", i, write_watchpoints[i]);
             }
         } else {
@@ -241,7 +242,7 @@ void process_line(std::string &line) {
     } else if (tokens[0] == "b/e" || tokens[0] == "break/e") {
         if (tokens.size() == 1) {
             printf("Breaking on exceptions:\n");
-            for (int i = 0; i < NUM_EXCEPTIONS; ++i) {
+            for (uint i = 0; i < NUM_EXCEPTIONS; ++i) {
                 if (exn_breaks[i]) {
                     printf("   %d\n", i);
                 }
@@ -273,7 +274,7 @@ void process_line(std::string &line) {
         else
             start_offs = 3;
 
-        for (int i = 0; i < 8; i++)
+        for (uint i = 0; i < 8; i++)
         {
             uint32_t this_addr = addr + 0x10 * (i - start_offs);
             boost::optional<std::pair<std::string, uint32_t> > funcname
@@ -296,7 +297,7 @@ void process_line(std::string &line) {
         }
     } else if (tokens[0][0] == 'x') {
         // The "examine" instruction. This requires some parsing.
-        int next_pos;
+        uint next_pos;
         bool physical;
         if (tokens[0][1] == 'p') {
             physical = true;
@@ -306,8 +307,8 @@ void process_line(std::string &line) {
             next_pos = 1;
         }
 
-        int width;
-        int count;
+        uint width;
+        uint count;
         if (tokens[0][next_pos] == '/') {
             next_pos++;
             if (isdigit(tokens[0][next_pos])) {
@@ -336,7 +337,7 @@ void process_line(std::string &line) {
 
         if (physical) {
             uint8_t *base_addr = ((uint8_t*)cpu.ram) + addr;
-            for (int i = 0; i < count; i++) {
+            for (uint i = 0; i < count; i++) {
                 if (width == 1) {
                     printf("0x%02hhx ", base_addr[i]);
                 } else if (width == 2) {
@@ -346,7 +347,7 @@ void process_line(std::string &line) {
                 }
             }
         } else {
-            for (int i = 0; i < count; i++) {
+            for (uint i = 0; i < count; i++) {
                 // NB: we assume we don't cross a page boundary.
                 boost::optional<uint32_t> phys_addr = virt_to_phys(addr + width * i, cpu, false);
 
@@ -467,7 +468,6 @@ void debug(char *debug_file) {
     cpu.regs.pc = 0x0;
     cpu.regs.sys_kmode = 1;
 
-    bool done = false;
     std::string last;
 
     if (debug_file) {

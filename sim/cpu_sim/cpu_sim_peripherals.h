@@ -5,21 +5,25 @@
 #include <SDL/SDL.h>
 #endif
 #include "cpu_sim.h"
+#include "cpu_sim_utils.h"
 
 struct cpu_t;
 
 class peripheral {
 public:
-    virtual bool process(cpu_t &cpu) { return false; }
+    virtual ~peripheral() { }
+    // FIXME: Implement this function.
+    virtual bool process(cpu_t UNUSED(&cpu)) { return false; }
     // Returns whether the given write will be handled by this peripheral.
-    virtual bool check_write(cpu_t &cpu, uint32_t addr, uint32_t val, uint8_t width){return false; }
+    // FIXME: Implement this function.
+    virtual bool check_write(cpu_t UNUSED(&cpu), uint32_t UNUSED(addr), uint32_t UNUSED(val), uint8_t UNUSED(width)) { return false; }
     // Returns true if the write was handled; false if this peripheral is punting on it.
-    virtual bool write(cpu_t &cpu, uint32_t addr, uint32_t val, uint8_t width) { return false; }
+    // FIXME: Implement this function.
+    virtual bool write(cpu_t UNUSED(&cpu), uint32_t UNUSED(addr), uint32_t UNUSED(val), uint8_t UNUSED(width)) { return false; }
     // Perform a read from the specified memory address. none is returned if the address
     // is not special to this peripheral.
-    virtual boost::optional<uint32_t> read(cpu_t &cpu, uint32_t addr, uint8_t width) {
-		return boost::none;
-	}
+    // FIXME: Implement this function.
+    virtual boost::optional<uint32_t> read(cpu_t UNUSED(&cpu), uint32_t UNUSED(addr), uint8_t UNUSED(width)) { return boost::none; }
     virtual std::string name() { return std::string("<NONE>"); }
 protected:
     bool fire_interrupt(cpu_t &cpu, uint8_t interrupt);
@@ -36,7 +40,8 @@ protected:
 // A timer implementation that just counts CPU cycles.
 class cycle_timer : public peripheral {
 public:
-    cycle_timer() : top(0), count(0), int_enable(0), int_flag(0), enable(0) {}
+    cycle_timer() : top(0), count(0), int_enable(0), int_flag(0), enable(0) { }
+    virtual ~cycle_timer() { }
     bool process(cpu_t &cpu);
     bool check_write(cpu_t &cpu, uint32_t addr, uint32_t val, uint8_t width);
     bool write(cpu_t &cpu, uint32_t addr, uint32_t val, uint8_t width);
@@ -66,7 +71,8 @@ private:
 // Serial port implementation. Just supports tx for now.
 class serial_port : public peripheral {
 public:
-	serial_port() : counter(0), tx_buf(0), tx_shift(0), state(SERIAL_IDLE), baud(0), control(0), status(1 << SERIAL_STATUS_TXE) {}
+    serial_port() : counter(0), tx_buf(0), tx_shift(0), state(SERIAL_IDLE), baud(0), control(0), status(1 << SERIAL_STATUS_TXE) { }
+    virtual ~serial_port() { }
     bool process(cpu_t &cpu);
     bool check_write(cpu_t &cpu, uint32_t addr, uint32_t val, uint8_t width);
     bool write(cpu_t &cpu, uint32_t addr, uint32_t val, uint8_t width);
@@ -95,6 +101,7 @@ private:
 class video : public peripheral {
 public:
     video();
+    virtual ~video()=0;
     bool process(cpu_t &cpu);
     bool check_write(cpu_t &cpu, uint32_t addr, uint32_t val, uint8_t width);
     bool write(cpu_t &cpu, uint32_t addr, uint32_t val, uint8_t width);

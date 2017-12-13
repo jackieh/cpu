@@ -163,13 +163,6 @@ const char CMPOP_STR[][MAX_OPCODE_LEN] = {
 static_assert(array_size(CMPOP_STR) == CMPOPS_COUNT, "Cmpops count mismatch");
 
 
-// Order must match instruction encoding
-enum shift_type {
-    LSL,
-    LSR,
-    ASR,
-    ROR
-};
 
 
 // Order must match instruction encoding
@@ -431,9 +424,9 @@ struct decoded_instruction {
 
     static shared_ptr<decoded_instruction> decode_instruction(instruction);
 
-    decoded_instruction() {
-        // XXX: I'm so sorry.
-    }
+    // XXX: I'm so sorry.
+    decoded_instruction() { }
+    virtual ~decoded_instruction() { }
 
     virtual std::string opcode_str();
     virtual std::string to_string();

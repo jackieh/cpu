@@ -38,7 +38,28 @@ std::string no_instruction::disassemble_inner() {
     return string_format("long 0x%x", raw_instr);
 }
 
-exec_result no_instruction::execute_unconditional(cpu_t &cpu, cpu_t &old_cpu) {
+// FIXME: Implement this function.
+exec_result no_instruction::execute(cpu_t UNUSED(&cpu), cpu_t UNUSED(&old_cpu)) {
+    assert(0);
+}
+
+// FIXME: Implement this function.
+uint64_t no_instruction::reg_read_mask() {
+    assert(0);
+}
+
+// FIXME: Implement this function.
+uint64_t no_instruction::reg_write_mask() {
+    assert(0);
+}
+
+// FIXME: Implement this function.
+bool no_instruction::predicate_ok(cpu_t UNUSED(&cpu)) {
+    assert(0);
+}
+
+// FIXME: Implement this function.
+exec_result no_instruction::execute_unconditional(cpu_t UNUSED(&cpu), cpu_t UNUSED(&old_cpu)) {
     return exec_result(EXC_NO_ERROR);
 }
 
@@ -526,7 +547,7 @@ exec_result loadstore_instruction::execute_unconditional(cpu_t &cpu, cpu_t &old_
     } else {
         boost::optional<uint32_t> val = boost::none;
 
-        for (int i = 0; i < cpu.peripherals.size(); i++) {
+        for (uint i = 0; i < cpu.peripherals.size(); i++) {
             boost::optional<uint32_t> periph_val = cpu.peripherals[i]->read(cpu, mem_addr, width);
             if (periph_val) {
                 if (verbose)
@@ -547,7 +568,7 @@ exec_result loadstore_instruction::execute_unconditional(cpu_t &cpu, cpu_t &old_
 
         if (!val) {
             uint32_t read_val = 0;
-            for (int i = 0; i < width; ++i) {
+            for (uint i = 0; i < width; ++i) {
                 read_val <<= 8;
                 read_val += cpu.ram[mem_addr];
                 mem_addr--;

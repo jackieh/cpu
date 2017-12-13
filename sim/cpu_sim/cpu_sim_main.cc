@@ -107,12 +107,12 @@ void dump_regs(regs_t regs, bool verbose) {
     if (verbose) {
         printf("regs.pc = 0x%x\n", regs.pc);
         printf("regs.r = { ");
-        for (int i = 0; i < 32; ++i) {
+        for (uint i = 0; i < 32; ++i) {
             printf("0x%x, ", regs.r[i]);
         }
         printf("}\n");
         printf("regs.p = { ");
-        for (int i = 0; i < 3; ++i) {
+        for (uint i = 0; i < 3; ++i) {
             printf("%d, ", regs.p[i]);
         }
         printf("}\n");
@@ -122,12 +122,12 @@ void dump_regs(regs_t regs, bool verbose) {
     } else {
         printf("pc 0x%x ", regs.pc);
         printf("r { ");
-        for (int i = 0; i < 32; ++i) {
+        for (uint i = 0; i < 32; ++i) {
             printf("0x%x ", regs.r[i]);
         }
         printf("} ");
         printf("p { ");
-        for (int i = 0; i < 3; ++i) {
+        for (uint i = 0; i < 3; ++i) {
             printf("%d ", regs.p[i]);
         }
         printf("} ");
@@ -147,7 +147,7 @@ void write_reg_trace(uint32_t pc, instruction_packet *pkt) {
         fwrite(pkt, sizeof(instruction_packet), 1, trace_file);
     else {
         uint32_t zero = 0;
-        for (int i = 0; i < 4; i++) {
+        for (uint i = 0; i < 4; i++) {
             fwrite(&zero, 4, 1, trace_file);
         }
     }
@@ -155,14 +155,14 @@ void write_reg_trace(uint32_t pc, instruction_packet *pkt) {
     fwrite(&cpu.reg_write_mask, 6, 1, trace_file);
 
     int count = 0;
-    for (int i = 0; i < 64; i++) {
+    for (uint i = 0; i < 64; i++) {
         uint64_t mask = ((uint64_t)1) << i;
         if (mask & cpu.reg_write_mask)
             count++;
     }
     fwrite(&count, 1, 1, trace_file);
 
-    for (int i = 0; i < 64; i++) {
+    for (uint i = 0; i < 64; i++) {
         uint64_t mask = ((uint64_t)1) << i;
         if (mask & cpu.reg_write_mask) {
             uint32_t val = cpu.reg_value(i);
@@ -186,7 +186,7 @@ bool step_program() {
         // Note: no need for multiple checks, because packets can't cross page boundaries.
 
         if (pc_phys) {
-            int idx = (*pc_phys) >> 4;
+            size_t idx = (*pc_phys) >> 4;
             if (idx >= cpu.packet_cache->size()) {
                 cpu.packet_cache->resize(idx * 2 + 1);
             }
@@ -396,7 +396,7 @@ int main(int argc, char** argv) {
     if (mode == MODE_TEST) {
         printf("OSOROM simulator starting in test mode\n");
 
-        for (int i = 0; i < ROMLEN; ++i) {
+        for (uint i = 0; i < ROMLEN; ++i) {
             printf("Running test program #%d\n", i);
             bzero(cpu.ram, SIM_RAM_BYTES);
             memcpy(cpu.ram, ROM[i], MAX_PROG_LEN);

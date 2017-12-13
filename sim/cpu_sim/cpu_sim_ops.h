@@ -8,13 +8,21 @@ struct no_instruction : public decoded_instruction {
     std::string opcode_str();
     std::string to_string();
     std::string disassemble_inner();
-    exec_result execute_unconditional(cpu_t &cpu, cpu_t &old_cpu);
+    exec_result execute(cpu_t &cpu, cpu_t &old_cpu);
+    uint64_t reg_read_mask();
+    uint64_t reg_write_mask();
+    bool is_nop();
+
+protected:
+    virtual bool predicate_ok(cpu_t &cpu);
+    // Internal use (ignores predicate flags):
+    virtual exec_result execute_unconditional(cpu_t &cpu, cpu_t &old_cpu);
 };
 
 struct other_instruction : public decoded_instruction {
     otherop_t otherop;
     uint32_t reserved_bits;
-    bool signd;  // mult/div
+    bool signd; // mult/div
     bool wide; // div
 
     std::string opcode_str();

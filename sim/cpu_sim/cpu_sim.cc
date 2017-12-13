@@ -104,7 +104,8 @@ void cpu_t::write_pc(uint32_t val) {
     regs.pc = val;
 }
 
-uint32_t cpu_t::read_pc(cpu_t &new_cpu) {
+// FIXME: Fully implement this function.
+uint32_t cpu_t::read_pc(cpu_t UNUSED(&new_cpu)) {
     return regs.pc;
 }
 
@@ -112,7 +113,8 @@ void cpu_t::write_link(bool val) {
     regs.link = val;
 }
 
-bool cpu_t::read_link(cpu_t &new_cpu) {
+// FIXME: Fully implement this function.
+bool cpu_t::read_link(cpu_t UNUSED(&new_cpu)) {
     return regs.link;
 }
 
@@ -120,7 +122,8 @@ void cpu_t::write_sys_kmode(bool val) {
     regs.sys_kmode = val;
 }
 
-bool cpu_t::read_sys_kmode(cpu_t &new_cpu) {
+// FIXME: Fully implement this function.
+bool cpu_t::read_sys_kmode(cpu_t UNUSED(&new_cpu)) {
     return regs.sys_kmode;
 }
 
@@ -379,7 +382,8 @@ uint64_t decoded_instruction::reg_write_mask() {
     return result;
 }
 
-exec_result decoded_instruction::execute_unconditional(cpu_t &cpu, cpu_t &old_cpu) {
+// FIXME: Fully implement this function.
+exec_result decoded_instruction::execute_unconditional(cpu_t UNUSED(&cpu), cpu_t UNUSED(&old_cpu)) {
     // Override in subclasses. If we hit this default implementation, it means we failed
     // to decode the instruction.
     return exec_result(EXC_ILLEGAL_INSTRUCTION);
@@ -394,14 +398,14 @@ exec_result decoded_instruction::execute(cpu_t &cpu, cpu_t &old_cpu) {
 
 std::string decoded_packet::to_string() {
     std::ostringstream result;
-    for (int i = 0; i < 4; ++i) {
+    for (uint i = 0; i < 4; ++i) {
         result << string_format("%s", instr[i]->to_string().c_str());
     }
     return result.str();
 }
 
 std::string decoded_packet::disassemble() {
-    int i;
+    uint i;
     // Note: we want to include at least one instruction, even if the entire packet
     // is nops.
     for (i = 3; i > 0; --i) {
@@ -412,7 +416,7 @@ std::string decoded_packet::disassemble() {
     std::ostringstream result;
     result << "{ ";
 
-    for (int j = 0; j <= i; ++j) {
+    for (uint j = 0; j <= i; ++j) {
         result << instr[j]->disassemble() << "; ";
     }
 
@@ -421,7 +425,7 @@ std::string decoded_packet::disassemble() {
 }
 
 decoded_packet::decoded_packet(instruction_packet packet) {
-    for (int i = 0; i < 4; ++i) {
+    for (uint i = 0; i < 4; ++i) {
         this->instr[i] = decoded_instruction::decode_instruction(packet[i]);
         // TODO: enforce slots for other kinds of instructions.
         if (this->instr[i]->long_imm) {
@@ -440,15 +444,15 @@ decoded_packet::decoded_packet(instruction_packet packet) {
 }
 
 void cpu_t::clear_exceptions() {
-    for (int i = 0; i < 4; ++i)
+    for (uint i = 0; i < 4; ++i)
         write_coreg(CP_EC0 + i, 0);
-    for (int i = 0; i < 2; ++i)
+    for (uint i = 0; i < 2; ++i)
         write_coreg(CP_EA0 + i, 0);
 }
 
 bool cpu_t::process_peripherals() {
     bool interrupt_fired = false;
-    for (int i = 0; i < peripherals.size(); i++) {
+    for (uint i = 0; i < peripherals.size(); i++) {
         if (peripherals[i]->process(*this)) {
             interrupt_fired = true;
         }
@@ -458,7 +462,7 @@ bool cpu_t::process_peripherals() {
 }
 
 bool cpu_t::validate_write(uint32_t addr, uint32_t val, uint8_t width) {
-    for (int i = 0; i < peripherals.size(); i++)
+    for (uint i = 0; i < peripherals.size(); i++)
     {
         if (peripherals[i]->check_write(*this, addr, val, width)) {
             return true;
@@ -480,7 +484,7 @@ bool decoded_packet::execute(cpu_t &cpu) {
 
     bool exception = false;
 
-    for (int i = 0; i < 4; ++i) {
+    for (uint i = 0; i < 4; ++i) {
         results[i] = this->instr[i]->execute(cpu, old_cpu);
         if (results[i].exception != EXC_NO_ERROR) {
             // There was an exception. Clear error state in each lane.
@@ -491,7 +495,7 @@ bool decoded_packet::execute(cpu_t &cpu) {
         }
     }
 
-    for (int i = 0; i < 4; ++i) {
+    for (uint i = 0; i < 4; ++i) {
         if (results[i].exception == EXC_HALT) {
             cpu.halted = true;
             return false;
@@ -520,11 +524,11 @@ bool decoded_packet::execute(cpu_t &cpu) {
         cpu = old_cpu;
     } else {
         // Resolve all writes.
-        for (int i = 0; i < 2; ++i) {
+        for (uint i = 0; i < 2; ++i) {
             if (writes[i]) {
                 mem_write_t mem_write = *writes[i];
                 bool handled = false;
-                for (int i = 0; i < cpu.peripherals.size(); i++) {
+                for (uint i = 0; i < cpu.peripherals.size(); i++) {
                     handled = cpu.peripherals[i]->write(cpu,
                                                         mem_write.addr,
                                                         mem_write.val,
@@ -538,7 +542,7 @@ bool decoded_packet::execute(cpu_t &cpu) {
                 }
                 if (!handled) {
                     // Note: error checking was already done.
-                    for (int j = 0; j < mem_write.width; ++j) {
+                    for (uint j = 0; j < mem_write.width; ++j) {
                         cpu.ram[mem_write.addr + j] = mem_write.val & 0xFF;
                         mem_write.val >>= 8;
                     }
@@ -546,7 +550,7 @@ bool decoded_packet::execute(cpu_t &cpu) {
             }
         }
     }
-    for (int i = 0; i < 2; ++i)
+    for (uint i = 0; i < 2; ++i)
     {
         cpu.last_writes[i] = writes[i];
     }
@@ -555,7 +559,7 @@ bool decoded_packet::execute(cpu_t &cpu) {
 
 uint64_t decoded_packet::reg_read_mask() {
     uint64_t result = 0;
-    for (int i = 0; i < 4; i++) {
+    for (uint i = 0; i < 4; i++) {
         result |= instr[i]->reg_read_mask();
     }
 
@@ -564,7 +568,7 @@ uint64_t decoded_packet::reg_read_mask() {
 
 uint64_t decoded_packet::reg_write_mask() {
     uint64_t result = 0;
-    for (int i = 0; i < 4; i++) {
+    for (uint i = 0; i < 4; i++) {
         result |= instr[i]->reg_write_mask();
     }
 

@@ -16,8 +16,8 @@ bool peripheral::fire_interrupt(cpu_t &cpu, uint8_t interrupt) {
     return true;
 }
 
-bool cycle_timer::check_write(cpu_t &cpu, uint32_t addr, uint32_t val, uint8_t width) {
-    // TODO: improve this.
+// FIXME: Fully implement this function.
+bool cycle_timer::check_write(cpu_t UNUSED(&cpu), uint32_t addr, uint32_t UNUSED(val), uint8_t UNUSED(width)) {
     return addr >= TIMER_BASE && addr <= TIMER_BASE + TIMER_CONTROL;
 }
 
@@ -39,7 +39,8 @@ bool cycle_timer::process(cpu_t &cpu) {
     return false;
 }
 
-bool cycle_timer::write(cpu_t &cpu, uint32_t addr, uint32_t val, uint8_t width) {
+// FIXME: Fully implement this function.
+bool cycle_timer::write(cpu_t UNUSED(&cpu), uint32_t addr, uint32_t val, uint8_t UNUSED(width)) {
     // TODO: support unaligned writes? Will we even allow those?
     if (addr == TIMER_BASE + TIMER_COUNT) {
         count = val;
@@ -57,7 +58,8 @@ bool cycle_timer::write(cpu_t &cpu, uint32_t addr, uint32_t val, uint8_t width) 
     return false;
 }
 
-boost::optional<uint32_t> cycle_timer::read(cpu_t &cpu, uint32_t addr, uint8_t width) {
+// FIXME: Fully implement this function.
+boost::optional<uint32_t> cycle_timer::read(cpu_t UNUSED(&cpu), uint32_t addr, uint8_t UNUSED(width)) {
     // TODO: support unaligned reads? Will we even allow those?
     // TODO: support different widths
     if (addr == TIMER_BASE + TIMER_COUNT) {
@@ -178,8 +180,8 @@ boost::optional<uint32_t> video::read(cpu_t &cpu, uint32_t addr, uint8_t width) 
 #endif
 
 
-bool serial_port::check_write(cpu_t &cpu, uint32_t addr, uint32_t val, uint8_t width) {
-    // TODO: improve this.
+// FIXME: Fully implement this function.
+bool serial_port::check_write(cpu_t UNUSED(&cpu), uint32_t addr, uint32_t UNUSED(val), uint8_t UNUSED(width)) {
     return addr >= SERIAL_BASE && addr <= SERIAL_BASE + SERIAL_STATUS;
 }
 
@@ -206,7 +208,8 @@ bool serial_port::process(cpu_t &cpu) {
     return false;
 }
 
-bool serial_port::write(cpu_t &cpu, uint32_t addr, uint32_t val, uint8_t width) {
+// FIXME: Fully implement this function.
+bool serial_port::write(cpu_t UNUSED(&cpu), uint32_t addr, uint32_t val, uint8_t width) {
     // TODO: support unaligned writes? Will we even allow those?
     if (width != 4 || (addr & 0x3) != 0)
         return false;
@@ -237,7 +240,8 @@ bool serial_port::write(cpu_t &cpu, uint32_t addr, uint32_t val, uint8_t width) 
     return false;
 }
 
-boost::optional<uint32_t> serial_port::read(cpu_t &cpu, uint32_t addr, uint8_t width) {
+// FIXME: Fully implement this function.
+boost::optional<uint32_t> serial_port::read(cpu_t UNUSED(&cpu), uint32_t addr, uint8_t UNUSED(width)) {
     if (width != 4 || (addr & 0x3) != 0)
         return boost::none;
     if (addr == SERIAL_BASE + SERIAL_BAUD) {
